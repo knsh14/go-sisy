@@ -31,12 +31,15 @@ func main() {
 	}
 
 	for i := 0; i < flag.NArg(); i++ {
-		path := flag.Arg(i)
-		switch dir, err := os.Stat(path); {
+		p := flag.Arg(i)
+		switch dir, err := os.Stat(p); {
 		case err != nil:
 			log.Fatal(err)
 		case dir.IsDir():
-			filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+			filepath.Walk(p, func(path string, info os.FileInfo, err error) error {
+				if info.IsDir() {
+					return nil
+				}
 				f, fset, err := converter.Convert(path)
 				if err != nil {
 					return errors.Wrap(err, "failed to convert")
@@ -48,11 +51,11 @@ func main() {
 				return nil
 			})
 		default:
-			f, fset, err := converter.Convert(path)
+			f, fset, err := converter.Convert(p)
 			if err != nil {
 				log.Fatal(err)
 			}
-			err = write(path, fset, f)
+			err = write(p, fset, f)
 			if err != nil {
 				log.Fatal(err)
 			}
